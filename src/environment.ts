@@ -5,26 +5,18 @@ import {
   Sound,
   Observable,
   AbstractMesh,
-  HDRCubeTexture,
   MeshBuilder,
   PBRMaterial,
   CubeTexture,
   BackgroundMaterial,
-  MirrorTexture,
-  Plane,
   Texture,
-  HemisphericLight,
-  ShadowGenerator,
-  PointLight,
-  SpotLight,
   Color3,
 } from "@babylonjs/core";
-import { InputController } from "./inputController";
 
 export class Environment {
-  public root: AbstractMesh;
+  public root!: AbstractMesh;
 
-  constructor(private _scene: Scene, private _input: InputController) {}
+  constructor(private _scene: Scene) {}
 
   public static readonly SOUND_MAP_KEYS: any = {
     BALL_BOUNCING: "ball-bouncing-to-a-stop.wav",

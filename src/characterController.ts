@@ -8,33 +8,21 @@ import {
   Color4,
   UniversalCamera,
   Quaternion,
-  AnimationGroup,
-  ExecuteCodeAction,
-  ActionManager,
-  ParticleSystem,
-  Texture,
-  SphereParticleEmitter,
-  Sound,
-  Observable,
-  ShadowGenerator,
-  Camera,
   Matrix,
-  ArcRotateCamera,
   StandardMaterial,
-  PointLight,
   Ray,
 } from "@babylonjs/core";
 import { InputController } from "./inputController";
 
 export class Player extends TransformNode {
-  public camera;
+  public camera!: UniversalCamera;
 
   //Player
-  public mesh: Mesh; //outer collisionbox of player
+  public mesh!: Mesh; //outer collisionbox of player
 
   //Camera
-  private _camRoot: TransformNode;
-  private _yTilt: TransformNode;
+  private _camRoot!: TransformNode;
+  // private _yTilt: TransformNode;
 
   // Movement
   private _moveDirection: Vector3 = Vector3.Zero();
@@ -59,11 +47,11 @@ export class Player extends TransformNode {
   private static readonly DASH_FACTOR: number = 2.5;
   private static readonly DASH_TIME: number = 10; //how many frames the dash lasts
   private static readonly MAX_DASH: number = 1; //how many frames the dash lasts
-  private static readonly DOWN_TILT: Vector3 = new Vector3(
-    0.8290313946973066,
-    0,
-    0
-  );
+  // private static readonly DOWN_TILT: Vector3 = new Vector3(
+  //   0.8290313946973066,
+  //   0,
+  //   0
+  // );
   private static readonly ORIGINAL_TILT: Vector3 = new Vector3(
     0.5934119456780721,
     0,
@@ -139,7 +127,7 @@ export class Player extends TransformNode {
     body.parent = outer;
     this.mesh = outer;
     this.mesh.parent = this;
-
+    outer.position = new Vector3(0, 5, 0);
     // add light to player
     // const light = new PointLight(
     //   "sparklight",
@@ -170,7 +158,7 @@ export class Player extends TransformNode {
     let yTilt = new TransformNode("ytilt");
     //adjustments to camera view to point down at our player
     yTilt.rotation = Player.ORIGINAL_TILT;
-    this._yTilt = yTilt;
+    // this._yTilt = yTilt;
     yTilt.parent = this._camRoot;
 
     //our actual camera that's pointing at our root's position
@@ -270,11 +258,13 @@ export class Player extends TransformNode {
     );
     angle += this._camRoot.rotation.y;
     let targ = Quaternion.FromEulerAngles(0, angle, 0);
-    this.mesh.rotationQuaternion = Quaternion.Slerp(
-      this.mesh.rotationQuaternion,
-      targ,
-      10 * this._deltaTime
-    );
+    let quart = this.mesh.rotationQuaternion;
+    if(quart)
+      this.mesh.rotationQuaternion = Quaternion.Slerp(
+        quart,
+        targ,
+        10 * this._deltaTime
+      );
   }
 
   private _floorRaycast(
@@ -293,7 +283,7 @@ export class Player extends TransformNode {
       return mesh.isPickable && mesh.isEnabled();
     });
 
-    if (pick.hit) {
+    if (pick?.hit && pick.pickedPoint) {
       return pick.pickedPoint;
     } else {
       return Vector3.Zero();

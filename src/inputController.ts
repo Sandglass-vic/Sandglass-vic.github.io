@@ -2,13 +2,11 @@ import {
   Scene,
   ActionManager,
   ExecuteCodeAction,
-  Observer,
   Scalar,
 } from "@babylonjs/core";
 
 export class InputController {
   public inputMap: any;
-  private _scene: Scene;
   //simple movement
   public horizontal: number = 0;
   public vertical: number = 0;
@@ -19,7 +17,6 @@ export class InputController {
   public jump: boolean = false;
 
   constructor(scene: Scene) {
-    this._scene = scene;
 
     scene.actionManager = new ActionManager(scene);
 

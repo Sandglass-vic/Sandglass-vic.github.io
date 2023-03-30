@@ -3,19 +3,12 @@ import "@babylonjs/inspector";
 import {
   Engine,
   Scene,
-  Color4,
   ArcRotateCamera,
   Vector3,
-  HemisphericLight,
-  Mesh,
   MeshBuilder,
-  FreeCamera,
-  Sound,
   Angle,
-  TransformNode,
   ShadowGenerator,
   PointLight,
-  SpotLight,
 } from "@babylonjs/core";
 import { Environment } from "./environment";
 import { Player } from "./characterController";
@@ -37,12 +30,9 @@ class App {
 
   //Scene - related
   private _state: number = 0;
-  private _3dscene: Scene;
-  private _2dscene: Scene;
 
-  private _env: Environment;
-  private _player: Player;
-  private _input: InputController;
+  private _env!: Environment;
+  private _input!: InputController;
 
   constructor() {
     // create canvas
@@ -104,35 +94,19 @@ class App {
     // load scene
     let scene = new Scene(this._engine);
     // set up environment
-    this._env = new Environment(scene, this._input);
+    this._env = new Environment(scene);
     await this._env.load();
-    let arcRotateCamera = new ArcRotateCamera(
-      "arcRotateCamera",
-      0,
-      Angle.FromDegrees(90).radians(),
-      100,
-      new Vector3(0, 0, 0),
-      scene
-    );
-    let target = MeshBuilder.CreateBox("arcRotateCameraTarget");
-    target.isVisible = false;
-    target.isPickable = false;
-    target.checkCollisions = false;
-    target.position.y = 20;
-    target.parent = this._env.root;
-    arcRotateCamera.setTarget(target);
-    scene.activeCamera = arcRotateCamera;
-    scene.registerBeforeRender(() => {
-      let deltaTime = this._engine.getDeltaTime() * 1e-3;
-      arcRotateCamera.alpha -= deltaTime * Angle.FromDegrees(4.5).radians();
-    });
-    arcRotateCamera.attachControl(this._canvas, true);
     // set up player
     this._input = new InputController(scene); //detect keyboard/mobile inputs
-    this._player = new Player(scene, this._input);
-    await this._player.load();
-    let playerCam = this._player.activatePlayerCamera();
+    let player = new Player(scene, this._input);
+    await player.load();
+    player.activatePlayerCamera();
     // scene.activeCamera = playerCam;
+    // set up camera
+    this._setUpArcRotateCam(scene);
+    // set up gui
+    // let ui = new UI(scene, arcRotateCam);
+    // set up lights
     let pointlight = new PointLight("courtLight", new Vector3(0, 20, 0), scene);
     pointlight.intensity = 10;
     pointlight.range = 10;
@@ -147,9 +121,8 @@ class App {
     const pointlightShadow = new ShadowGenerator(1024, pointlight);
     pointlightShadow.darkness = 0.4;
     pointlightShadow.addShadowCaster(this._env.root);
-    pointlightShadow.addShadowCaster(this._player.mesh);
+    pointlightShadow.addShadowCaster(player.mesh);
     await scene.whenReadyAsync();
-    scene.getMeshByName("outer").position = new Vector3(0, 5, 0);
     //when the scene is ready, hide loading
     this._engine.hideLoadingUI();
     this._scene.dispose();
@@ -180,6 +153,29 @@ class App {
 
     return this._canvas;
   }
+  private _setUpArcRotateCam(scene: Scene): ArcRotateCamera {
+    let arcRotateCamera = new ArcRotateCamera(
+      "arcRotateCamera",
+      0,
+      Angle.FromDegrees(90).radians(),
+      100,
+      new Vector3(0, 0, 0),
+      scene
+    );
+    let target = MeshBuilder.CreateBox("arcRotateCameraTarget");
+    target.isVisible = false;
+    target.isPickable = false;
+    target.checkCollisions = false;
+    target.position.y = 20;
+    target.parent = this._env.root;
+    arcRotateCamera.setTarget(target);
+    scene.activeCamera = arcRotateCamera;
+    scene.registerBeforeRender(() => {
+      let deltaTime = this._engine.getDeltaTime() * 1e-3;
+      arcRotateCamera.alpha -= deltaTime * Angle.FromDegrees(4.5).radians();
+    });
+    // arcRotateCamera.attachControl(this._canvas, true);
+    return arcRotateCamera;
+  }
 }
 new App();
-

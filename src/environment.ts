@@ -11,6 +11,8 @@ import {
   BackgroundMaterial,
   Texture,
   Color3,
+  Space,
+  Angle,
 } from "@babylonjs/core";
 
 export class Environment {
@@ -34,25 +36,73 @@ export class Environment {
       m.receiveShadows = true;
       m.checkCollisions = true;
     });
-
+    // Walls
+    let courtWidth = 48;
+    let courtLength = 80;
+    let wallHeight = 20;
+    let wall0 = MeshBuilder.CreatePlane(
+      "wall0",
+      { width: courtWidth, height: wallHeight },
+      this._scene
+    );
+    wall0.position = new Vector3(0, wallHeight / 2, courtLength / 2);
+    wall0.rotation = new Vector3(0, Angle.FromDegrees(180).radians(), 0);
+    let wall1 = MeshBuilder.CreatePlane(
+      "wall1",
+      { width: courtLength, height: wallHeight },
+      this._scene
+    );
+    wall1.position = new Vector3(courtWidth / 2, wallHeight / 2, 0);
+    wall1.rotation = new Vector3(0, Angle.FromDegrees(270).radians(), 0);
+    let wall2 = MeshBuilder.CreatePlane(
+      "wall2",
+      { width: courtWidth, height: wallHeight },
+      this._scene
+    );
+    wall2.position = new Vector3(0, wallHeight / 2, -courtLength / 2);
+    let wall3 = MeshBuilder.CreatePlane(
+      "wall3",
+      { width: courtLength, height: wallHeight },
+      this._scene
+    );
+    wall3.position = new Vector3(-courtWidth / 2, wallHeight / 2, 0);
+    wall3.rotation = new Vector3(0, Angle.FromDegrees(90).radians(), 0);
+    wall0.checkCollisions = true;
+    wall1.checkCollisions = true;
+    wall2.checkCollisions = true;
+    wall3.checkCollisions = true;
+    wall0.isVisible = false;
+    wall1.isVisible = false;
+    wall2.isVisible = false;
+    wall3.isVisible = false;
+    wall0.parent = this.root;
+    wall1.parent = this.root;
+    wall2.parent = this.root;
+    wall3.parent = this.root;
     // lights and textures
-    // var hdrTexture = new HDRCubeTexture(
+    // let hdrTexture = new HDRCubeTexture(
     //   "/img/skybox.jpg",
     //   this._scene,
     //   512
     // );
-    var skybox = MeshBuilder.CreateBox("skybox", { size: 1000 }, this._scene);
-    var skyboxMtl = new PBRMaterial("skyboxMtl", this._scene);
+    let skybox = MeshBuilder.CreateBox("skybox", { size: 1000 }, this._scene);
+    let skyboxMtl = new PBRMaterial("skyboxMtl", this._scene);
     skyboxMtl.backFaceCulling = false;
-    skyboxMtl.reflectionTexture = CubeTexture.CreateFromPrefilteredData("environment.env", this._scene);
+    skyboxMtl.reflectionTexture = CubeTexture.CreateFromPrefilteredData(
+      "environment.env",
+      this._scene
+    );
     skyboxMtl.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
     skyboxMtl.microSurface = 0.7;
-    skyboxMtl.reflectivityColor = new Color3(0.66,0.66,0.66);
+    skyboxMtl.reflectivityColor = new Color3(0.66, 0.66, 0.66);
     skybox.material = skyboxMtl;
     // this._scene.createDefaultEnvironment({
     //   environmentTexture: "environment.env",
     // });
-    this._scene.environmentTexture = CubeTexture.CreateFromPrefilteredData("environment.env", this._scene);
+    this._scene.environmentTexture = CubeTexture.CreateFromPrefilteredData(
+      "environment.env",
+      this._scene
+    );
 
     let backgroundMaterial = new BackgroundMaterial(
       "backgroundMaterial",

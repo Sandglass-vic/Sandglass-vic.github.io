@@ -11,6 +11,8 @@ import {
   Matrix,
   StandardMaterial,
   Ray,
+  Angle,
+  Space,
 } from "@babylonjs/core";
 import { InputController } from "./inputController";
 
@@ -47,16 +49,6 @@ export class Player extends TransformNode {
   private static readonly DASH_FACTOR: number = 2.5;
   private static readonly DASH_TIME: number = 10; //how many frames the dash lasts
   private static readonly MAX_DASH: number = 1; //how many frames the dash lasts
-  // private static readonly DOWN_TILT: Vector3 = new Vector3(
-  //   0.8290313946973066,
-  //   0,
-  //   0
-  // );
-  private static readonly ORIGINAL_TILT: Vector3 = new Vector3(
-    0.5934119456780721,
-    0,
-    0
-  );
 
   constructor(public scene: Scene, private _input: InputController) {
     super("player", scene);
@@ -65,6 +57,7 @@ export class Player extends TransformNode {
   public async load() {
     this._createPlayerMesh();
     this._setupPlayerCamera();
+    this.activatePlayerCamera();
   }
 
   public activatePlayerCamera(): UniversalCamera {
@@ -152,24 +145,25 @@ export class Player extends TransformNode {
     this._camRoot = new TransformNode("root");
     this._camRoot.position = new Vector3(0, 0, 0); //initialized at (0,0,0)
     //to face the player from behind (180 degrees)
-    this._camRoot.rotation = new Vector3(0, Math.PI, 0);
+    // this._camRoot.rotation = new Vector3(0, Math.PI, 0);
 
     //rotations along the x-axis (up/down tilting)
-    let yTilt = new TransformNode("ytilt");
+    // let yTilt = new TransformNode("ytilt");
     //adjustments to camera view to point down at our player
-    yTilt.rotation = Player.ORIGINAL_TILT;
+    // yTilt.rotate(new Vector3(1, 0, 0), 45, Space.LOCAL);
+    // yTilt.rotation = new Vector3(Angle.FromDegrees(45).radians(),0,0);
     // this._yTilt = yTilt;
-    yTilt.parent = this._camRoot;
+    // yTilt.parent = this._camRoot;
 
     //our actual camera that's pointing at our root's position
     this.camera = new UniversalCamera(
       "cam",
-      new Vector3(0, 0, -30),
+      new Vector3(0, 30, -30),
       this.scene
     );
     this.camera.lockedTarget = this._camRoot.position;
     this.camera.fov = 0.47350045992678597;
-    this.camera.parent = yTilt;
+    this.camera.parent = this._camRoot;
 
     return this.camera;
   }
@@ -259,7 +253,7 @@ export class Player extends TransformNode {
     angle += this._camRoot.rotation.y;
     let targ = Quaternion.FromEulerAngles(0, angle, 0);
     let quart = this.mesh.rotationQuaternion;
-    if(quart)
+    if (quart)
       this.mesh.rotationQuaternion = Quaternion.Slerp(
         quart,
         targ,

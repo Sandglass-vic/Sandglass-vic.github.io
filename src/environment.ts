@@ -3,7 +3,6 @@ import {
   Vector3,
   SceneLoader,
   Sound,
-  Observable,
   AbstractMesh,
   MeshBuilder,
   PBRMaterial,
@@ -11,7 +10,6 @@ import {
   BackgroundMaterial,
   Texture,
   Color3,
-  Space,
   Angle,
 } from "@babylonjs/core";
 
@@ -20,13 +18,20 @@ export class Environment {
 
   constructor(private _scene: Scene) {}
 
-  public static readonly SOUND_MAP_KEYS: any = {
-    BALL_BOUNCING: "ball-bouncing-to-a-stop.wav",
-    BUZZER: "buzzer.wav",
-  };
+  public static readonly BALL_BOUNCING: string = "ball-bouncing-to-a-stop.wav";
+  public static readonly BUZZER: string = "buzzer.wav";
+  public static readonly DEFENCE: string = "defence.wav";
+  public static readonly NOISE: string = "noise.wav";
   public soundMap: any = {};
 
-  public onRun = new Observable();
+  public isDay!: Boolean;
+  public isNight!: Boolean;
+
+  private _skyboxMtl!: PBRMaterial;
+  private _dayTextureSkybox!: CubeTexture;
+  private _dayTextureEnv!: CubeTexture;
+  private _nightTextureSkybox!: CubeTexture;
+  private _nightTextureEnv!: CubeTexture;
 
   public async load() {
     // Mesh
@@ -80,29 +85,24 @@ export class Environment {
     wall2.parent = this.root;
     wall3.parent = this.root;
     // lights and textures
-    // let hdrTexture = new HDRCubeTexture(
-    //   "/img/skybox.jpg",
-    //   this._scene,
-    //   512
-    // );
     let skybox = MeshBuilder.CreateBox("skybox", { size: 1000 }, this._scene);
-    let skyboxMtl = new PBRMaterial("skyboxMtl", this._scene);
-    skyboxMtl.backFaceCulling = false;
-    skyboxMtl.reflectionTexture = CubeTexture.CreateFromPrefilteredData(
-      "environment.env",
+    this._skyboxMtl = new PBRMaterial("skyboxMtl", this._scene);
+    this._skyboxMtl.backFaceCulling = false;
+    this._dayTextureSkybox = CubeTexture.CreateFromPrefilteredData(
+      "day.env",
       this._scene
     );
-    skyboxMtl.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
-    skyboxMtl.microSurface = 0.7;
-    skyboxMtl.reflectivityColor = new Color3(0.66, 0.66, 0.66);
-    skybox.material = skyboxMtl;
-    // this._scene.createDefaultEnvironment({
-    //   environmentTexture: "environment.env",
-    // });
-    this._scene.environmentTexture = CubeTexture.CreateFromPrefilteredData(
-      "environment.env",
+    this._dayTextureEnv = CubeTexture.CreateFromPrefilteredData(
+      "day.env",
       this._scene
     );
+    this._nightTextureSkybox = CubeTexture.CreateFromPrefilteredData(
+      "night.env",
+      this._scene
+    );
+    this._nightTextureEnv = new CubeTexture("night.env", this._scene);
+    skybox.material = this._skyboxMtl;
+    this.dayMode();
 
     let backgroundMaterial = new BackgroundMaterial(
       "backgroundMaterial",
@@ -152,32 +152,118 @@ export class Environment {
     };
   }
 
-  private _loadSounds(): void {
-    for (const key_arr of Object.entries(Environment.SOUND_MAP_KEYS)) {
-      this.soundMap[key_arr[0]] = new Sound(
-        key_arr[0],
-        "/sound/" + key_arr[1],
-        this._scene,
-        () => {},
-        {
-          loop: true,
-          autoplay: false,
-          spatialSound: true,
-          distanceModel: "exponential",
-          rolloffFactor: 2,
-        }
-      );
-      let sound = this.soundMap[key_arr[0]] as Sound;
-      sound.setPosition(new Vector3(0, 0, 0));
-    }
+  public dayMode(): void {
+    this._skyboxMtl.reflectionTexture = this._dayTextureSkybox;
+    this._skyboxMtl.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
+    this._skyboxMtl.reflectivityColor = new Color3(0.66, 0.66, 0.66);
+    this._skyboxMtl.microSurface = 0.7;
+    this._scene.environmentTexture = this._dayTextureEnv;
+    this.isDay = true;
+    this.isNight = false;
+  }
 
-    // this.onRun.add(play => {
-    //   if (play && !this.soundMap["BALL_BOUNCING"].isPlaying) {
-    //     this.soundMap["BALL_BOUNCING"].play();
-    //   } else if (!play && this.soundMap["BALL_BOUNCING"].isPlaying) {
-    //     this.soundMap["BALL_BOUNCING"].stop();
-    //     this.soundMap["BALL_BOUNCING"].isPlaying = false;
-    //   }
-    // });
+  public nightMode(): void {
+    this._skyboxMtl.reflectionTexture = this._nightTextureSkybox;
+    this._skyboxMtl.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
+    this._skyboxMtl.reflectivityColor = new Color3(0.66, 0.66, 0.66);
+    this._skyboxMtl.microSurface = 0.7;
+    this._scene.environmentTexture = this._nightTextureEnv;
+    this.isNight = true;
+    this.isDay = false;
+  }
+
+  private _loadSounds(): void {
+    let buzzer_distance = 50;
+    let buzzer_position = new Vector3(0, 15, 0);
+    let buzzer = new Sound(
+      Environment.BUZZER,
+      "/sound/" + Environment.BUZZER,
+      this._scene,
+      () => {},
+      {
+        loop: false,
+        autoplay: false,
+        spatialSound: true,
+        maxDistance: buzzer_distance,
+      }
+    );
+    buzzer.setPosition(buzzer_position);
+    this.soundMap[Environment.BUZZER] = buzzer;
+    // let sphereMat = new StandardMaterial("sphereMat", this._scene);
+    // sphereMat.diffuseColor = Color3.Purple();
+    // sphereMat.backFaceCulling = false;
+    // sphereMat.alpha = 0.3;
+    // let sphereMusic1 = MeshBuilder.CreateSphere(
+    //   "buzzerSphere",
+    //   { segments: 20, diameter: buzzer_distance * 2 },
+    //   this._scene
+    // );
+    // sphereMusic1.material = sphereMat;
+    // sphereMusic1.position = buzzer_position;
+
+    let bouncing_distance = 50;
+    let bouncing_position = new Vector3(0, 15, 0);
+    let bouncing = new Sound(
+      Environment.BALL_BOUNCING,
+      "/sound/" + Environment.BALL_BOUNCING,
+      this._scene,
+      () => {},
+      {
+        loop: false,
+        autoplay: false,
+        spatialSound: true,
+        maxDistance: bouncing_distance,
+      }
+    );
+    bouncing.setPosition(bouncing_position);
+    this.soundMap[Environment.BALL_BOUNCING] = bouncing;
+    // let sphereMat = new StandardMaterial("sphereMat", this._scene);
+    // sphereMat.diffuseColor = Color3.Purple();
+    // sphereMat.backFaceCulling = false;
+    // sphereMat.alpha = 0.3;
+    // let sphereMusic1 = MeshBuilder.CreateSphere(
+    //   "buzzerSphere",
+    //   { segments: 20, diameter: bouncing_distance * 2 },
+    //   this._scene
+    // );
+    // sphereMusic1.material = sphereMat;
+    // sphereMusic1.position = bouncing_position;
+
+    let defence_distance = 200;
+    let defence = new Sound(
+      Environment.DEFENCE,
+      "/sound/" + Environment.DEFENCE,
+      this._scene,
+      () => {},
+      {
+        loop: false,
+        autoplay: false,
+        spatialSound: true,
+        maxDistance: defence_distance,
+      }
+    );
+    let defence_anchor = MeshBuilder.CreateSphere(
+      "defence_anchor",
+      { segments: 20, diameter: 1 },
+      this._scene
+    );
+    defence_anchor.isVisible = false;
+    defence_anchor.position = new Vector3(50, 0, 0);
+    defence.attachToMesh(defence_anchor);
+    defence.setDirectionalCone(90, 180, 0.5);
+    defence.setLocalDirectionToMesh(new Vector3(0, 0, -1));
+    this.soundMap[Environment.DEFENCE] = defence;
+
+    let noise = new Sound(
+      Environment.NOISE,
+      "/sound/" + Environment.NOISE,
+      this._scene,
+      () => {},
+      {
+        loop: true,
+        autoplay: false,
+      }
+    );
+    this.soundMap[Environment.NOISE] = noise;
   }
 }

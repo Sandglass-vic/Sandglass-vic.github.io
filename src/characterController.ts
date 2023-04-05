@@ -11,8 +11,6 @@ import {
   Matrix,
   StandardMaterial,
   Ray,
-  Angle,
-  Space,
 } from "@babylonjs/core";
 import { InputController } from "./inputController";
 
@@ -120,7 +118,7 @@ export class Player extends TransformNode {
     body.parent = outer;
     this.mesh = outer;
     this.mesh.parent = this;
-    outer.position = new Vector3(0, 5, 0);
+    outer.position = new Vector3(0, 5, -1);
     // add light to player
     // const light = new PointLight(
     //   "sparklight",
@@ -158,13 +156,12 @@ export class Player extends TransformNode {
     //our actual camera that's pointing at our root's position
     this.camera = new UniversalCamera(
       "cam",
-      new Vector3(0, 30, -30),
+      new Vector3(0, 5, -40),
       this.scene
     );
     this.camera.lockedTarget = this._camRoot.position;
     this.camera.fov = 0.47350045992678597;
     this.camera.parent = this._camRoot;
-
     return this.camera;
   }
 

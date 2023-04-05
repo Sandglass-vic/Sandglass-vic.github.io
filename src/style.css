@@ -6,10 +6,13 @@ body {
   padding: 0;
 }
 
+button {
+  font-size: 50px;
+}
+
 canvas {
   width: 100%;
-  /* min-width: 1400px; */
-  min-width: 500px;
+  min-width: 1400px;
   height: 100%;
 }
 
@@ -20,7 +23,7 @@ canvas {
   -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
   transition: 1s ease-in-out;
-  background-color: aliceblue;
+  /* background-color: aliceblue; */
   max-width: 900px;
   max-height: 860px;
   height: 40vh;
@@ -36,11 +39,17 @@ canvas {
   visibility: visible;
 }
 
+.app.aside {
+  -webkit-transform: translate(0%, 0%);
+  transform: translate(0%, 0%);
+}
+
 .app.visible {
   animation: fadeIn 0.5s ease-out forwards;
 }
 .app.hidden {
-  /* pointer-events: none; */
+  display: none;
+  pointer-events: none;
   animation: fadeOut 0.5s ease-out forwards;
 }
 
@@ -70,4 +79,207 @@ canvas {
     display: none;
     opacity: 0;
   }
+}
+
+.day {
+  color: #4d4d4f !important;
+}
+
+.night {
+  color: #f7f8f8 !important;
+}
+/* Created By Joseph Shenton @TeamiHackify 
+
+Please feel free to use this toggle if you like. But I request that you give credit to me thank you */
+
+#hideui {
+  position: fixed;
+  top: 20px;
+  right: 200px;
+  font-size: 11px;
+  opacity: 0.85;
+  z-index: 900;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#hideui > #hideimg {
+  fill: #4d4d4f !important;
+  top: -3px;
+  width: 30px;
+  height: auto;
+  display: block;
+  margin: 1px;
+}
+
+#hideui > #showimg {
+  fill: #4d4d4f !important;
+  top: -3px;
+  width: 30px;
+  height: auto;
+  display: block;
+  margin: 1px;
+}
+
+#hideui.night > #hideimg {
+  fill: #f7f8f8 !important;
+}
+
+#hideui.night > #showimg {
+  fill: #f7f8f8 !important;
+}
+
+#hideui.show > #hideimg {
+  display: none;
+}
+
+#hideui.hide > #showimg {
+  display: none;
+}
+
+#hideui.show > #hidespan {
+  display: none;
+}
+
+#hideui.hide > #showspan {
+  display: none;
+}
+
+#button-con {
+  position: fixed;
+  top: 20px;
+  right: 10px;
+  opacity: 1;
+  z-index: 900;
+}
+
+#button-con > label > #dayIcon {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  top: -3px;
+  margin: 0 7px;
+  fill: #4d4d4f;
+}
+
+#button-con > label > #nightIcon {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  top: -3px;
+  margin: 0 7px;
+  fill: #4d4d4f;
+}
+
+#button-con.night > label > #dayIcon {
+  fill: #f7f8f8 !important;
+}
+
+#button-con.night > label > #nightIcon {
+  fill: #f7f8f8 !important;
+}
+
+#dayIcon,
+#nightIcon {
+  cursor: pointer;
+}
+
+.toggle {
+  display: none;
+}
+
+.toggle,
+.toggle:after,
+.toggle:before,
+.toggle *,
+.toggle *:after,
+.toggle *:before,
+.toggle + .toggle-button {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.toggle::-moz-selection,
+.toggle:after::-moz-selection,
+.toggle:before::-moz-selection,
+.toggle *::-moz-selection,
+.toggle *:after::-moz-selection,
+.toggle *:before::-moz-selection,
+.toggle + .toggle-button::-moz-selection {
+  background: none;
+}
+
+.toggle::selection,
+.toggle:after::selection,
+.toggle:before::selection,
+.toggle *::selection,
+.toggle *:after::selection,
+.toggle *:before::selection,
+.toggle + .toggle-button::selection {
+  background: none;
+}
+
+.toggle + .toggle-button {
+  outline: 0;
+  display: inline-block;
+  width: 4em;
+  height: 2em;
+  position: relative;
+  cursor: pointer;
+  border: 2px solid #333;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.toggle + .toggle-button:after,
+.toggle + .toggle-button:before {
+  position: relative;
+  display: block;
+  content: "";
+  width: 50%;
+  height: 100%;
+}
+
+.toggle + .toggle-button:after {
+  left: 0;
+}
+
+.toggle + .toggle-button:before {
+  display: none;
+}
+
+.toggle:checked + .toggle-button:after {
+  left: 50%;
+}
+
+.toggle + .toggle-button {
+  padding: 2px;
+  -webkit-transition: all 0.2s ease;
+  transition: all 0.2s ease;
+  border: 2px solid #4d4d4f;
+  border-radius: 2em;
+}
+
+.toggle + .toggle-button:after {
+  -webkit-transition: all 0.2s ease;
+  transition: all 0.2s ease;
+  background: #4d4d4f;
+  content: "";
+  border-radius: 1em;
+}
+
+#button-con.night > .toggle + .toggle-button {
+  border: 2px solid #f7f8f8 !important;
+}
+
+#button-con.night > .toggle + .toggle-button:after {
+  background: #f7f8f8 !important;
+}
+
+.toggle:checked + .toggle-button:after {
+  left: 50%;
 }

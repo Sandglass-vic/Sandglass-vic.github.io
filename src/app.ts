@@ -5,14 +5,14 @@ import {
   Scene,
   ArcRotateCamera,
   Vector3,
-  MeshBuilder,
   Angle,
   ShadowGenerator,
   PointLight,
   CubicEase,
   EasingFunction,
   Animation,
-  Camera,
+  Sound,
+  SpotLight,
 } from "@babylonjs/core";
 import { Environment } from "./environment";
 import { Player } from "./characterController";
@@ -37,6 +37,13 @@ class App {
   private _env!: Environment;
   private _input!: InputController;
   private _player!: Player;
+
+  public get isDay() {
+    return this._env.isDay;
+  }
+  public get isNight() {
+    return this._env.isNight;
+  }
 
   constructor() {
     // create canvas
@@ -90,9 +97,12 @@ class App {
     let player = new Player(scene, this._input);
     await player.load();
     this._player = player;
+    scene.audioListenerPositionProvider = () => {
+      return this._player.mesh.position;
+    };
     // scene.activeCamera = playerCam;
     // set up camera
-    this._setUpArcRotateCam(scene);
+    this._setUpStartScene(scene);
     // set up gui
     // let ui = new UI(scene, arcRotateCam);
     // set up lights
@@ -117,6 +127,11 @@ class App {
     this._scene.dispose();
     this._scene = scene;
     this._state = State.START;
+    // do something after we started
+    let defence = document.getElementById("defence");
+    setTimeout(() => {
+      defence?.click();
+    }, 3000);
   }
 
   private _createCanvas(): HTMLCanvasElement {
@@ -134,11 +149,20 @@ class App {
     return this._canvas;
   }
 
-  private async _sleep(ms: number): Promise<void> {
-    return new Promise((r) => setTimeout(r, ms));
+  // private async _sleep(ms: number): Promise<void> {
+  //   return new Promise((r) => setTimeout(r, ms));
+  // }
+
+  public isUiVisible(): Boolean {
+    let app = document.getElementById("app");
+    if (app) {
+      return app.classList.contains("visible");
+    } else {
+      return false;
+    }
   }
 
-  private _setUpArcRotateCam(scene: Scene): ArcRotateCamera {
+  private _setUpStartScene(scene: Scene): ArcRotateCamera {
     let start_target = new Vector3(
       this._env.root.position.x,
       this._env.root.position.y + 20,
@@ -165,6 +189,7 @@ class App {
       }
     });
     arcRotateCamera.attachControl(this._canvas, true);
+    this._player.camera.attachControl(this._canvas, true);
     (ArcRotateCamera.prototype as any).spinTo = function (
       whichprop: any,
       targetval: any,
@@ -185,19 +210,43 @@ class App {
       );
     };
     let app = document.getElementById("app");
-    let hider = document.getElementById("hider");
+    let hideui = document.getElementById("hideui");
+    let nighter = document.getElementById("cb1");
     let switch_button = document.getElementById("switch");
-    if (hider)
-      hider.onclick = async () => {
+    if (hideui)
+      hideui.onclick = async () => {
         let app = document.getElementById("app");
         if (app) {
-          if (app.classList.contains("visible")) {
-            app.classList.remove("visible");
-            app.classList.add("hidden");
-          } else {
-            app.classList.remove("hidden");
-            app.classList.add("visible");
-          }
+          app.classList.toggle("visible");
+          app.classList.toggle("hidden");
+        }
+        hideui?.classList.toggle("hide");
+        hideui?.classList.toggle("show");
+      };
+    let sparklight = new SpotLight(
+      "sparklight",
+      new Vector3(0, 20, 0),
+      Vector3.Down(),
+      Angle.FromDegrees(75).radians(),
+      0.9,
+      scene
+    );
+    sparklight.intensity = 1000;
+    sparklight.setEnabled(false);
+    sparklight.parent = this._player.mesh;
+    if (nighter)
+      nighter.onclick = () => {
+        hideui?.classList.toggle("night");
+        hideui?.classList.toggle("day");
+        let buttonCon = document.getElementById("button-con");
+        buttonCon?.classList.toggle("night");
+        buttonCon?.classList.toggle("day");
+        if (this.isDay) {
+          this._env.nightMode();
+          sparklight.setEnabled(true);
+        } else {
+          this._env.dayMode();
+          sparklight.setEnabled(false);
         }
       };
     if (switch_button)
@@ -227,21 +276,16 @@ class App {
             () => (arcRotateCamera as any).spinTo("alpha", alpha_to, speed),
             0
           );
-          if (app) {
-            app.style.transform = "translate(0%, 0%)";
-          }
+          app?.classList.toggle("aside");
         } else if (this._state == State.FLAT) {
-          if (app?.classList.contains("visible")) {
-            app.classList.remove("visible");
-            app.classList.add("hidden");
+          if (this.isUiVisible()) {
+            hideui?.click();
           }
           this._scene.activeCamera = this._player.camera;
           this._state = State.COURT;
+          app?.classList.toggle("aside");
         } else if (this._state == State.COURT) {
-          if (app?.classList.contains("hidden")) {
-            app.classList.remove("hidden");
-            app.classList.add("visible");
-          }
+          if (!this.isUiVisible()) hideui?.click();
           let speed = 60;
           setTimeout(
             () =>
@@ -258,32 +302,37 @@ class App {
             0
           );
           // await this._sleep(1000);
-          if (app) {
-            app.style.transform = "translate(-50%, -50%)";
-          }
+          // app?.classList.toggle("aside");
           this._scene.activeCamera = arcRotateCamera;
           this._state = State.START;
         }
       };
-
-    // setTimeout(() => (arcRotateCamera as any).spinTo("beta", 1.2, 20), 1000);
-    // setTimeout(
-    //   () => (arcRotateCamera as any).spinTo("alpha", Math.PI / 4, 125),
-    //   3000
-    // );
-    // setTimeout(
-    //   () => (arcRotateCamera as any).spinTo("alpha", Math.PI, 125),
-    //   6000
-    // );
-    // setTimeout(() => (arcRotateCamera as any).spinTo("alpha", 2.14, 125), 9000);
-    // setTimeout(
-    //   () => (arcRotateCamera as any).spinTo("alpha", 1.14, 125),
-    //   10000
-    // );
-    // setTimeout(() => (arcRotateCamera as any).spinTo("alpha", 0, 125), 11000);
-    // setTimeout(() => (arcRotateCamera as any).spinTo("radius", 10, 100), 13000);
-    // setTimeout(() => (arcRotateCamera as any).spinTo("radius", 25, 100), 18000);
-
+    let buzzer = document.getElementById("buzzer");
+    if (buzzer)
+      buzzer.onclick = () => {
+        let sound = this._env.soundMap[Environment.BUZZER] as Sound;
+        if (!sound.isPlaying) sound.play();
+      };
+    let bouncing = document.getElementById("bouncing");
+    if (bouncing)
+      bouncing.onclick = () => {
+        let sound = this._env.soundMap[Environment.BALL_BOUNCING] as Sound;
+        if (!sound.isPlaying) sound.play();
+      };
+    let defence = document.getElementById("defence");
+    if (defence)
+      defence.onclick = () => {
+        let sound = this._env.soundMap[Environment.DEFENCE] as Sound;
+        if (!sound.isPlaying) sound.play();
+        else sound.stop();
+      };
+    let noise = document.getElementById("noise");
+    if (noise)
+      noise.onclick = () => {
+        let sound = this._env.soundMap[Environment.NOISE] as Sound;
+        if (!sound.isPlaying) sound.play();
+        else sound.stop();
+      };
     return arcRotateCamera;
   }
 }
